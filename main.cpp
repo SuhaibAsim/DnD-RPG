@@ -69,8 +69,9 @@ void interaction(const string Options[], int size) {
 void display(const string Options[], int size) {
 	const string highlight = " -> ";
     system("cls");
-    if(menu == true)
-    cout<<"Welcome to DND."<<endl;
+    if(menu == true){
+    	cout<<"Welcome to <PLACEHOLDER>."<<endl;
+	}
     else
     cout<<"Choose your Class:"<<endl;
     for (int i = 0; i < size; i++) {
@@ -95,7 +96,7 @@ void display(const string Options[], int size) {
 
 //doesn't contain much other than initial declaration and stuff
 int main() {
-    string MenuOptions[] = { "START GAME", "CONTINUE", "OPTIONS", "EXIT" };
+    string MenuOptions[] = { "Start Game", "Continue", "Options", "Exit" };
     int size = sizeof(MenuOptions) / sizeof(MenuOptions[0]);
     display(MenuOptions, size);
 }
@@ -111,21 +112,21 @@ void transitionToGame() {
 
 //changes the screen from main menu depending on what user enters
 void MenuDisplay(string SelectedOption) {
-	if(SelectedOption == "START GAME")
+	if(SelectedOption == "Start Game")
             transitionToGame();
-        else if(SelectedOption == "CONTINUE")
+        else if(SelectedOption == "Continue")
         	transitionToContinue();
-        else if(SelectedOption == "OPTIONS")
+        else if(SelectedOption == "Options")
             transitionToOptions();
-        else if(SelectedOption == "EXIT")
+        else if(SelectedOption == "Exit")
             transitionToExit();
 }
 
 //asks user his name
 void NameDisplay(string SelectedOption) {
 	cout<<"\nEnter Your Name: ";
-	cin>>name;
-	cout<<"Your "<<SelectedOption<<" has been named: "<< name;
+	getline(cin, name);
+	cout<<"Your "<<SelectedOption<<" has been named: "<< name <<".";
 }
 
 
