@@ -116,6 +116,7 @@ void NameDisplay(string SelectedOption) {
 	cout<<"Enter Your Name: ";
 	cin>>name;
 	cout<<"Your "<<SelectedOption<<" has been named: "<< name;
+	cout<<"Goodbye."
 }
 
 
