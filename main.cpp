@@ -24,7 +24,7 @@ void NameDisplay(string SelectedOption);
 void transitionToGame();
 
 
-//not of much use as of right now, will come back to it.
+//not of much use as of right now, will come back to it. Leads to other screen menus for now.
 void transitionToContinue() {
 	system("cls");
 	cout<<"You chose to continue the game.";
