@@ -7,26 +7,43 @@ using namespace std;
 
 enum Key { W = 119, S = 115, SPACEBAR = 32 };
 
-int Arrowindex = 0;
+int arrowIndex = 0;
 bool menu = true;
 bool classMenu = false;
+bool combatMenu = false;
 
 string name;
+string monster;
 
 //actual game shit from here on
 //classes the player can choose from
-int Warrior[4] = {100, 10, 3, 15};
-int Wizard[4] = {80, 3, 16, 32};
+
+//[0]HP [1]STR [2]MG [3]AGI
+int Knight[4] = {100, 10, 3, 15};
+int Pyromancer[4] = {80, 3, 16, 32};
 int Rogue[4];
 
-//level experience and shit
+//[0]HP [1]STR [3]XP
+int Goblin[] = {20, 5, 5};
+int Gargoyle[] = {35, 8, 15};
+
+//character stats and shit
 int ChEXP = 0;
 int ChLVL = 0;
+int ChHP;
+int ChSTR;
+int ChMG;
+int ChAGI;
 
-void interaction(const string MenuOptions[], int size);
-void display(const string MenuOptions[], int size);
-void MenuDisplay(string SelectedOption);
-void NameDisplay(string SelectedOption);
+
+int dynamicChHP; //HP changes when user takes damage.
+string ChCLASS;
+
+
+void interaction(const string menuOptions[], int size);
+void display(const string menuOptions[], int size);
+void menuDisplay(string selectedOption);
+void nameDisplay(string selectedOption);
 void transitionToGame();
 void transitionToContinue();
 void transitionToOptions();
@@ -34,6 +51,11 @@ void transitionToExit();
 void gameStartCheck();
 void gameStart();
 void gameIntro();
+void gameLoop();
+void combatDisplay();
+void ChstatsDetermine();
+string monsterDetermine();
+void monsterStatsDetermine();
 int randomNumberGenerator(int limit);
 
 void transitionToContinue() {
@@ -52,99 +74,142 @@ void transitionToExit() {
 }
 
 
-void interaction(const string Options[], int size) {
-	if(menu == false)
-	cout<<"\n\n\nHP: Represents your total health points.\nSTR: Determines the amount of physical damage your deal.\nMG: Determines the amount of magic damage you deal. \nAGI: Determines the odds of you getting hit by enemy attacks."<<endl;
-    int input = _getch();
-    const string SelectedOption = Options[Arrowindex];
+void interaction(const string options[], int size) {
+	int input = _getch();
+    const string selectedOption = options[arrowIndex];
     if(input == SPACEBAR){
     	if(menu == true)
-    	MenuDisplay(SelectedOption);
-    	else
-    	NameDisplay(SelectedOption);
+    	menuDisplay(selectedOption);
+    	else if(classMenu == true && menu == false && combatMenu == false){
+    		ChCLASS = selectedOption;
+    		nameDisplay(ChCLASS);
+		}
     }
-    else if (input == W && Arrowindex > 0){
-        Arrowindex--;
-        display(Options, size);
+    else if (input == W && arrowIndex > 0){
+        arrowIndex--;
+        system("cls");
+        display(options, size);
     }
-    else if (input == S && Arrowindex < size - 1){
-        Arrowindex++;
-        display(Options, size);
+    else if (input == S && arrowIndex < size - 1){
+        arrowIndex++;
+        system("cls");
+        display(options, size);
     }
-    else
-        display(Options, size);
+    else {
+    	system("cls");
+    	display(options, size);
+	}
 }
 
 
-void display(const string Options[], int size) {
+void display(const string options[], int size) {
 	const string highlight = " -> ";
-    system("cls");
-    if(menu == true){
+    if(menu == true && classMenu == false && combatMenu == false)
     	cout<<"Welcome to <PLACEHOLDER>."<<endl;
-	}
-    else
+    else if(classMenu == true && menu == false && combatMenu == false)
     cout<<"Choose your Class:"<<endl;
+    else if(combatMenu == true && menu == false && classMenu == false) {
+    	combatDisplay();
+    	cout<<"Choose your action: "<<endl;
+	}
     for (int i = 0; i < size; i++) {
-        if (i == Arrowindex) {
+        if (i == arrowIndex) {
         	if(menu == true)
-            cout << highlight << Options[i] << endl;
-            if(classMenu == true && menu == false) {
-            	if(Options[i] == "Knight") {
-            		cout<< highlight << Options[i] << "\t [HP: 100, STR: 10, MG: 3, AGI: 15]"<<endl;
-				} else if (Options[i] == "Wizard") {
-					cout<< highlight << Options[i] << "\t [HP: 80, STR: 3, MG: 16, AGI: 32]"<<endl;
-				} else if (Options[i] == "Rogue") {
-					cout<< highlight << Options[i] << "\t Haven't decided yet"<<endl;
+            cout << highlight << options[i] << endl;
+            if(classMenu == true && menu == false && combatMenu == false) {
+            	if(options[i] == "Knight") {
+            		cout<< highlight << options[i] << "\t [HP: 100, STR: 10, MG: 3, AGI: 15]"<<endl;
+				} else if (options[i] == "Pyromancer") {
+					cout<< highlight << options[i] << "\t [HP: 80, STR: 3, MG: 16, AGI: 32]"<<endl;
+				} else if (options[i] == "Rogue") {
+					cout<< highlight << options[i] << "\t Haven't decided yet"<<endl;
 				}
-			}    
-        } else {
-            cout << "    " << Options[i] << endl;
+			} else if(combatMenu == true && menu == false && classMenu == false) {
+				cout << highlight << options[i] << endl;
+			}   
+        }
+		 else {
+            cout << "    " << options[i] << endl;
         }
     }
-    interaction(Options, size);
+    if(combatMenu == true && menu == false && classMenu == false)
+    //monster stats will be displayed here
+    if(classMenu == true || combatMenu == true)
+	cout<<"\n\n\nHP[Health Points]: Represents your total health points.\nSTR[Strength]: Determines the amount of physical damage your deal.\nMG[Magic]: Determines the amount of magic damage you deal. \nAGI[Agility]: Determines the odds of you getting hit by enemy attacks."<<endl;
+    
+    interaction(options, size);
 }
 
+void ChstatsDetermine() {
+	//[0]HP [1]STR [2]MG [3]AGI
+	if(ChCLASS == "Knight"){
+		ChHP = Knight[0];
+		ChSTR = Knight[1];
+		ChMG = Knight[2];
+		ChAGI = Knight[3];
+	}
+	else if(ChCLASS == "Pyromancer"){
+		ChHP = Pyromancer[0];
+		ChSTR = Pyromancer[1];
+		ChMG = Pyromancer[2];
+		ChAGI = Pyromancer[3];		
+	}
+	else
+		cout<<"work in progress.";
+	
+}
+
+void combatDisplay() {
+	dynamicChHP= ChHP;
+	cout<<"[Name: "<<ChCLASS<<" "<<name<<"] ";
+	cout<<"[HP: "<<dynamicChHP<<"] ";
+	cout<<"[STR: "<<ChSTR<<"] ";
+	cout<<"[MG: "<<ChMG<<"] ";
+	cout<<"[AGI:"<<ChAGI<<"] "<<endl<<endl;
+}
 
 int main() {
-    string MenuOptions[] = { "Start Game", "Continue", "Options", "Exit" };
-    int size = sizeof(MenuOptions) / sizeof(MenuOptions[0]);
-    display(MenuOptions, size);
+    string menuOptions[] = { "Start Game", "Continue", "Options", "Exit" };
+    int size = sizeof(menuOptions) / sizeof(menuOptions[0]);
+    display(menuOptions, size);
 }
 
 
 void transitionToGame() {
 	menu = false;
 	classMenu = true;
-	const string ClassOptions[] = { "Knight", "Wizard", "Rogue"};
-	int size = sizeof(ClassOptions)/sizeof(ClassOptions[0]);
-	cout<<"Choose your class: "<<endl;
-	display(ClassOptions, size);
+	const string classOptions[] = { "Knight", "Pyromancer", "Rogue"};
+	int size = sizeof(classOptions)/sizeof(classOptions[0]);
+	system("cls");
+	display(classOptions, size);
 }
 
 
-void MenuDisplay(string SelectedOption) {
-	if(SelectedOption == "Start Game")
+void menuDisplay(string selectedOption) {
+	if(selectedOption == "Start Game")
             transitionToGame();
-        else if(SelectedOption == "Continue")
+        else if(selectedOption == "Continue")
         	transitionToContinue();
-        else if(SelectedOption == "Options")
+        else if(selectedOption == "Options")
             transitionToOptions();
-        else if(SelectedOption == "Exit")
+        else if(selectedOption == "Exit")
             transitionToExit();
 }
 
 
-void NameDisplay(string SelectedOption) {
+void nameDisplay(string ChCLASS) {
 	cout<<"\nEnter Your Name: ";
 	getline(cin, name);
-	cout<<"Your "<<SelectedOption<<" has been named: "<< name <<"."<<endl;
+	cout<<"Your "<<ChCLASS<<" has been named: "<< name <<"."<<endl;
 	cout<<"Press the SPACEBAR to Start the Game:"<<endl;
 	gameStartCheck();
 }
 
 void gameStartCheck() {
-	if(getch() == SPACEBAR)
-	gameStart();
+	if(getch() == SPACEBAR){
+		system("cls");
+		gameStart();
+	}
 	else{
 		cout<<"Oops... Try Again."<<endl;
 		gameStartCheck();
@@ -154,6 +219,7 @@ void gameStartCheck() {
 
 void gameStart() {
 	gameIntro();
+	gameLoop();
 }
 
 void gameIntro() {
@@ -175,7 +241,7 @@ void gameIntro() {
 		cout<<"bandits thirsty for blood, a hydra lurking in the shadows, a dragon's infernal roar.";
 		getch();
 		cout<<""<<endl<<endl;
-		cout<<"And at the end of it all, a presence stirs. A darkness that waits for you."<<endl;
+		cout<<"And at the end of it all, a presence stirs. A darkness that waits for you.";
 	}
 	
 	 else if(introSceneNumber == 2) {
@@ -188,7 +254,7 @@ void gameIntro() {
 		cout<<"This place is no sanctuary. It is a prison, a labyrinth of malice and death. If you wish to survive, you must move, fight, and carve your path out of this forsaken tomb.";
 		getch();
 		cout<<""<<endl<<endl;
-		cout<<"But deep within, a voice lingers, mocking and cold: You will never leave."<<endl;
+		cout<<"But deep within, a voice lingers, mocking and cold: You will never leave.";
 	}
 	
 	 else if(introSceneNumber == 3) {
@@ -204,7 +270,7 @@ void gameIntro() {
 		cout<<"and deeper still, beasts of legend wait, coiled in throne of darkness, where a vampire lord reigns, his laughter echoing through the void.";
 		getch();
 		cout<<""<<endl<<endl;
-		cout<<"You have no choice. The only path is forward, through fire and blood, through terror and death. Will you escape this nightmare, or will the dungeon claim you as its own?"<<endl;
+		cout<<"You have no choice. The only path is forward, through fire and blood, through terror and death. Will you escape this nightmare, or will the dungeon claim you as its own?";
 	}
 	
 	 else if(introSceneNumber == 4) {
@@ -222,7 +288,7 @@ void gameIntro() {
 		getch();
 		cout<<""<<endl<<endl;
 		cout<<"At the dungeons's heart, a darkness waits, ancient and cruel. Its voice scrates at the edges of your mind, mocking your resolve. It knows"<<endl;
-		cout<<"you will come, and it hungers for your failure."<<endl;
+		cout<<"you will come, and it hungers for your failure.";
 	}
 	
 	else if(introSceneNumber == 5) {
@@ -240,8 +306,41 @@ void gameIntro() {
 		getch();
 		cout<<""<<endl<<endl;
 		cout<<"Your only weapon is your will. The dungeon is merciless, but you are here for a reason. Perhaps, by escaping this nightmare,"<<endl;
-		cout<<"you will discover the truth of who you are-or perish in the attempt."<<endl;
+		cout<<"you will discover the truth of who you are-or perish in the attempt.";
 	}
+	getch();
+	cout<<""<<endl<<endl;
+	cout<<"As you rise and begin to explore, you come across your first foe..."<<endl;
+	getch();
+	return;
+}
+
+void gameLoop(){
+	combatMenu = true;
+	menu = false;
+	classMenu = false;
+	const string action[] = {"Attack", "Defend", "Run"};
+	int size = sizeof(action)/sizeof(action[0]);
+	ChstatsDetermine();
+	monsterDetermine();
+//	monsterStatsDetermine();
+	cout<<"\nYou encountered a: "<<monster;
+	getch();
+	system("cls");
+	display(action, size);
+}
+
+string monsterDetermine() {
+	int monsterNumber = randomNumberGenerator(2);
+	switch(monsterNumber){
+		case 1:
+			monster = "Goblin";
+			break;
+		case 2:
+			monster = "Gargoyle";
+			break;
+	}
+	return monster;
 }
 
 int randomNumberGenerator(int limit) {
