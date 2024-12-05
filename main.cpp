@@ -17,7 +17,6 @@ string monster;
 
 //actual game shit from here on
 //classes the player can choose from
-
 //[0]HP [1]STR [2]MG [3]AGI
 int Knight[4] = {100, 10, 3, 15};
 int Pyromancer[4] = {80, 3, 16, 32};
@@ -35,8 +34,13 @@ int ChSTR;
 int ChMG;
 int ChAGI;
 
+//monster stats
+int monsterHP;
+int monsterSTR;
+int monsterXP;
 
 int dynamicChHP; //HP changes when user takes damage.
+int dynamicMonsterHP;
 string ChCLASS;
 
 
@@ -56,11 +60,12 @@ void combatDisplay();
 void ChstatsDetermine();
 string monsterDetermine();
 void monsterStatsDetermine();
+void monsterStatsDisplay();
 int randomNumberGenerator(int limit);
 
 void transitionToContinue() {
 	system("cls");
-	cout<<"You chose to continue the game.";
+	cout<<"This feature is not yet implemented.";
 }
 
 void transitionToOptions() {
@@ -110,7 +115,7 @@ void display(const string options[], int size) {
     cout<<"Choose your Class:"<<endl;
     else if(combatMenu == true && menu == false && classMenu == false) {
     	combatDisplay();
-    	cout<<"Choose your action: "<<endl;
+    	cout<<"What will you do: "<<endl;
 	}
     for (int i = 0; i < size; i++) {
         if (i == arrowIndex) {
@@ -133,7 +138,7 @@ void display(const string options[], int size) {
         }
     }
     if(combatMenu == true && menu == false && classMenu == false)
-    //monster stats will be displayed here
+    monsterStatsDisplay();
     if(classMenu == true || combatMenu == true)
 	cout<<"\n\n\nHP[Health Points]: Represents your total health points.\nSTR[Strength]: Determines the amount of physical damage your deal.\nMG[Magic]: Determines the amount of magic damage you deal. \nAGI[Agility]: Determines the odds of you getting hit by enemy attacks."<<endl;
     
@@ -141,7 +146,6 @@ void display(const string options[], int size) {
 }
 
 void ChstatsDetermine() {
-	//[0]HP [1]STR [2]MG [3]AGI
 	if(ChCLASS == "Knight"){
 		ChHP = Knight[0];
 		ChSTR = Knight[1];
@@ -161,11 +165,19 @@ void ChstatsDetermine() {
 
 void combatDisplay() {
 	dynamicChHP= ChHP;
-	cout<<"[Name: "<<ChCLASS<<" "<<name<<"] ";
+	cout<<"[NAME: "<<ChCLASS<<" "<<name<<"] ";
 	cout<<"[HP: "<<dynamicChHP<<"] ";
 	cout<<"[STR: "<<ChSTR<<"] ";
 	cout<<"[MG: "<<ChMG<<"] ";
 	cout<<"[AGI:"<<ChAGI<<"] "<<endl<<endl;
+}
+
+void monsterStatsDisplay() {
+	dynamicMonsterHP = monsterHP;
+	cout<<"\n[MONSTER: "<<monster<<"] ";
+	cout<<"[HP: "<<dynamicMonsterHP<<"] ";
+	cout<<"[STR: "<<monsterSTR<<"] ";
+	cout<<"[EXP: "<<monsterXP<<"] "<<endl<<endl;
 }
 
 int main() {
@@ -323,7 +335,7 @@ void gameLoop(){
 	int size = sizeof(action)/sizeof(action[0]);
 	ChstatsDetermine();
 	monsterDetermine();
-//	monsterStatsDetermine();
+	monsterStatsDetermine();
 	cout<<"\nYou encountered a: "<<monster;
 	getch();
 	system("cls");
@@ -341,6 +353,19 @@ string monsterDetermine() {
 			break;
 	}
 	return monster;
+}
+
+void monsterStatsDetermine() {
+	if(monster == "Goblin"){
+		monsterHP = Goblin[0];
+		monsterSTR = Goblin[1];
+		monsterXP = Goblin[2];
+	} else if(monster == "Gargoyle") {
+		monsterHP = Gargoyle[0];
+		monsterSTR = Gargoyle[1];
+		monsterXP = Gargoyle[2];	
+	}
+	return;
 }
 
 int randomNumberGenerator(int limit) {
