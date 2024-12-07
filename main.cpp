@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string>
+#include <windows.h>
 #include <conio.h>
 using namespace std;
 
@@ -14,6 +15,10 @@ bool combatMenu = false;
 
 string name;
 string monster;
+string cAction;
+string logArray[100];
+int logIndex = 0;
+int logCount = 0;
 
 //actual game shit from here on
 //classes the player can choose from
@@ -42,7 +47,10 @@ int monsterXP;
 int dynamicChHP; //HP changes when user takes damage.
 int dynamicMonsterHP;
 string ChCLASS;
-
+bool playerAction = true;
+bool monsterAction = false;
+bool monsterAlive = false;
+bool playerAlive = true;
 
 void interaction(const string menuOptions[], int size);
 void display(const string menuOptions[], int size);
@@ -61,6 +69,11 @@ void ChstatsDetermine();
 string monsterDetermine();
 void monsterStatsDetermine();
 void monsterStatsDisplay();
+void playerTurn();
+void monsterTurn();
+void combatLoop();
+void gameOver();
+void victory();
 int randomNumberGenerator(int limit);
 
 void transitionToContinue() {
@@ -78,16 +91,89 @@ void transitionToExit() {
     cout << "Goodbye.";
 }
 
+void playerTurn() {
+	if(playerAction == true && playerAlive == true) {
+		if (cAction == "Attack") {
+        	playerAction = false;
+        	logArray[logIndex] = "> You attack the monster: " + monster + " [-" + to_string(ChSTR) + "]";
+        	dynamicMonsterHP -= ChSTR;
+        	if (dynamicMonsterHP <= 0)
+            	victory();
+        	logIndex++;
+    }
+    if (cAction == "Defend") {
+        playerAction = false;
+        dynamicChHP -= monsterSTR / 2;
+        logArray[logIndex] = "> You defend against the monster: " + monster;
+        logIndex++;
+    }
+    if (cAction == "Run") {
+        playerAction = false;
+        logArray[logIndex] = "> You attempt to run from the monster: " + monster;
+        logIndex++;
+    }
+}
+    
+    cAction = "";
+    monsterAction = true;
+    monsterTurn();
+    return;
+}
+
+void victory() {
+	monsterAlive = false;
+	cAction = "";
+	cout<<"\n\nYou slayed the "<<monster<<endl;
+	monsterDetermine();
+	monsterStatsDetermine();
+	monsterAlive = true;
+	dynamicMonsterHP = monsterHP;
+	for(int i = 0; i < 100; i++ )
+		logArray[i] = "\0";
+	cout<<"You encounter another monster: "<<monster<<endl;
+	getch();
+	system("cls");
+	const string action[] = {"Attack", "Defend", "Run"};
+	int size = sizeof(action)/sizeof(action[0]);
+	display(action, size);
+}
+
+void monsterTurn() {
+	if(monsterAction == true && playerAction == false && monsterAlive == true && playerAlive == true){
+		dynamicChHP -= monsterSTR;
+		if(dynamicChHP <= 0)
+		gameOver();
+		logArray[logIndex] = "> The monster: " + monster + " attacked you. [-" + to_string(monsterSTR) + "]";
+		logIndex++;
+	}
+	monsterAction = false;
+	playerAction = true;
+}
+
+void gameOver() {
+	playerAlive = false;
+	system("cls");
+	cout<<"YOU DIED.";
+	exit(0);
+}
+
+void combatLoop(){
+	playerTurn();
+}
 
 void interaction(const string options[], int size) {
 	int input = _getch();
     const string selectedOption = options[arrowIndex];
     if(input == SPACEBAR){
-    	if(menu == true)
+    	if(menu == true && classMenu == false && combatMenu == false)
     	menuDisplay(selectedOption);
     	else if(classMenu == true && menu == false && combatMenu == false){
     		ChCLASS = selectedOption;
     		nameDisplay(ChCLASS);
+		} else if(combatMenu == true && menu == false && classMenu == false){
+			cAction = selectedOption;
+			system("cls");
+			display(options, size);
 		}
     }
     else if (input == W && arrowIndex > 0){
@@ -105,7 +191,6 @@ void interaction(const string options[], int size) {
     	display(options, size);
 	}
 }
-
 
 void display(const string options[], int size) {
 	const string highlight = " -> ";
@@ -137,11 +222,26 @@ void display(const string options[], int size) {
             cout << "    " << options[i] << endl;
         }
     }
-    if(combatMenu == true && menu == false && classMenu == false)
-    monsterStatsDisplay();
-    if(classMenu == true || combatMenu == true)
+    if(combatMenu == true && menu == false && classMenu == false){
+    	monsterStatsDisplay();
+		combatLoop();
+    	logCount = 0;
+    	string temp[3];
+		for (int i = 99; i >= 0 && logCount < 3; i--) {
+    		if (!logArray[i].empty()) {
+    			temp[logCount] = logArray[i];
+				logCount++;
+			}
+		}
+		if (logCount > 0) {
+        	for (int i = logCount - 1; i >= 0; i--)
+            	cout << temp[i] << endl;
+    } else 
+        cout << "No logs available." << endl;
+    }
+    if(classMenu == true || combatMenu == true) {
 	cout<<"\n\n\nHP[Health Points]: Represents your total health points.\nSTR[Strength]: Determines the amount of physical damage your deal.\nMG[Magic]: Determines the amount of magic damage you deal. \nAGI[Agility]: Determines the odds of you getting hit by enemy attacks."<<endl;
-    
+	}
     interaction(options, size);
 }
 
@@ -164,7 +264,6 @@ void ChstatsDetermine() {
 }
 
 void combatDisplay() {
-	dynamicChHP= ChHP;
 	cout<<"[NAME: "<<ChCLASS<<" "<<name<<"] ";
 	cout<<"[HP: "<<dynamicChHP<<"] ";
 	cout<<"[STR: "<<ChSTR<<"] ";
@@ -173,7 +272,6 @@ void combatDisplay() {
 }
 
 void monsterStatsDisplay() {
-	dynamicMonsterHP = monsterHP;
 	cout<<"\n[MONSTER: "<<monster<<"] ";
 	cout<<"[HP: "<<dynamicMonsterHP<<"] ";
 	cout<<"[STR: "<<monsterSTR<<"] ";
@@ -335,7 +433,10 @@ void gameLoop(){
 	int size = sizeof(action)/sizeof(action[0]);
 	ChstatsDetermine();
 	monsterDetermine();
+	monsterAlive = true;
 	monsterStatsDetermine();
+	dynamicMonsterHP = monsterHP;
+	dynamicChHP= ChHP;
 	cout<<"\nYou encountered a: "<<monster;
 	getch();
 	system("cls");
