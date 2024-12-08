@@ -9,16 +9,22 @@ using namespace std;
 enum Key { W = 119, S = 115, SPACEBAR = 32 };
 
 int arrowIndex = 0;
-bool menu = true;
-bool classMenu = false;
-bool combatMenu = false;
+
+bool mainMenu;
+bool classMenu;
+bool combatMenu;
+bool weaponMenu;
 
 string name;
 string monster;
 string cAction;
+string playerWeapon;
 string logArray[100];
 int logIndex = 0;
 int logCount = 0;
+
+string playerDetails;
+string monsterDetails;
 
 //actual game shit from here on
 //classes the player can choose from
@@ -32,49 +38,67 @@ int Goblin[] = {20, 5, 5};
 int Gargoyle[] = {35, 8, 15};
 
 //character stats and shit
-int ChEXP = 0;
-int ChLVL = 0;
-int ChHP;
-int ChSTR;
-int ChMG;
-int ChAGI;
+int playerExp = 0;
+int playerLevel = 0;
+int playerHp;
+int dynamicPlayerHp;
+int playerPower;
+int playerMagic;
+int playerAgility;
 
 //monster stats
-int monsterHP;
-int monsterSTR;
-int monsterXP;
+int monsterHp;
+int monsterPower;
+int monsterExp;
 
-int dynamicChHP; //HP changes when user takes damage.
-int dynamicMonsterHP;
-string ChCLASS;
+int dynamicMonsterHp = 0;
+string playerClass;
 bool playerAction = true;
 bool monsterAction = false;
 bool monsterAlive = false;
 bool playerAlive = true;
 
-void interaction(const string menuOptions[], int size);
-void display(const string menuOptions[], int size);
-void menuDisplay(string selectedOption);
+void interaction(string menuOptions[], int size);
+void display(string menuOptions[], int size);
+void menuChoiceDetermine(string selectedOption);
+void weaponWindow();
 void nameDisplay(string selectedOption);
 void transitionToGame();
 void transitionToContinue();
 void transitionToOptions();
 void transitionToExit();
-void gameStartCheck();
+void gameStartplayereck();
 void gameStart();
 void gameIntro();
 void gameLoop();
+void playerStatsDisplay();
 void combatDisplay();
-void ChstatsDetermine();
-string monsterDetermine();
+void monsterDetermine();
 void monsterStatsDetermine();
 void monsterStatsDisplay();
 void playerTurn();
-void monsterTurn();
+//void monsterTurn();
 void combatLoop();
 void gameOver();
-void victory();
-int randomNumberGenerator(int limit);
+//void victory();
+
+void classChoiceDetermine(string);
+int randomNumberGenerator(int , int);
+
+void weaponDisplay(string weapon, const string highlight);
+void weaponChoiceDetermine(string weapon);
+void classDisplay(string class_, const string highlight);
+
+//window functions
+void menuWindow();
+void classWindow();
+void weaponWindow();
+void combatWindow();
+void windowDetermine();
+
+void topWindowDisplay();
+void classWindow();
+void descriptionDisplay();
 
 void transitionToContinue() {
 	system("cls");
@@ -91,252 +115,114 @@ void transitionToExit() {
     cout << "Goodbye.";
 }
 
-void playerTurn() {
-	if(playerAction == true && playerAlive == true) {
-		if (cAction == "Attack") {
-        	playerAction = false;
-        	logArray[logIndex] = "> You attack the monster: " + monster + " [-" + to_string(ChSTR) + "]";
-        	dynamicMonsterHP -= ChSTR;
-        	if (dynamicMonsterHP <= 0)
-            	victory();
-        	logIndex++;
-    }
-    if (cAction == "Defend") {
-        playerAction = false;
-        dynamicChHP -= monsterSTR / 2;
-        logArray[logIndex] = "> You defend against the monster: " + monster;
-        logIndex++;
-    }
-    if (cAction == "Run") {
-        playerAction = false;
-        logArray[logIndex] = "> You attempt to run from the monster: " + monster;
-        logIndex++;
-    }
-}
+//void playerTurn() {
+//	if(playerAction == true && playerAlive == true) {
+//		if (cAction == "Attack") {
+//        	playerAction = false;
+//        	logArray[logIndex] = "> You attack the monster: " + monster + " [-" + to_string(playerPower) + "]";
+//        	dynamicMonsterHP -= playerPower;
+//        	if (dynamicMonsterHP <= 0)
+////            	victory();
+//        	logIndex++;
+//    }
+//    if (cAction == "Defend") {
+//        playerAction = false;
+//        dynamicplayerHp -= monsterSTR / 2;
+//        logArray[logIndex] = "> You defend against the monster: " + monster;
+//        logIndex++;
+//    }
+//    if (cAction == "Run") {
+//        playerAction = false;
+//        logArray[logIndex] = "> You attempt to run from the monster: " + monster;
+//        logIndex++;
+//    }
+//}
+//}
     
-    cAction = "";
-    monsterAction = true;
-    monsterTurn();
-    return;
-}
+//    cAction = "";
+//    monsterAction = true;
+//    monsterTurn();
+//    return;
+//}
 
-void victory() {
-	monsterAlive = false;
-	cAction = "";
-	cout<<"\n\nYou slayed the "<<monster<<endl;
-	monsterDetermine();
-	monsterStatsDetermine();
-	monsterAlive = true;
-	dynamicMonsterHP = monsterHP;
-	for(int i = 0; i < 100; i++ )
-		logArray[i] = "\0";
-	cout<<"You encounter another monster: "<<monster<<endl;
-	getch();
-	system("cls");
-	const string action[] = {"Attack", "Defend", "Run"};
+//void victory() {
+//	monsterAlive = false;
+//	cAction = "";
+//	cout<<"\n\nYou slayed the "<<monster<<endl;
+//	monsterDetermine();
+//	monsterStatsDetermine();
+//	monsterAlive = true;
+//	dynamicMonsterHP = monsterHP;
+//	for(int i = 0; i < 100; i++ )
+//		logArray[i] = "\0";
+//	cout<<"You encounter another monster: "<<monster<<endl;
+//	getch();
+//	system("cls");
+//	const string action[] = {"Attack", "Defend", "Run"};
+//	int size = sizeof(action)/sizeof(action[0]);
+////	display(action, size);
+//}
+
+//void monsterTurn() {
+//	if(monsterAction == true && playerAction == false && monsterAlive == true && playerAlive == true){
+//		dynamicplayerHp -= monsterSTR;
+//		if(dynamicplayerHp <= 0)
+//		gameOver();
+//		logArray[logIndex] = "> The monster: " + monster + " attacked you. [-" + to_string(monsterSTR) + "]";
+//		logIndex++;
+//	}
+//	monsterAction = false;
+//	playerAction = true;
+//}
+//
+//void gameOver() {
+//	playerAlive = false;
+//	system("cls");
+//	cout<<"YOU DIED.";
+//	exit(0);
+//}
+
+//void combatLoop(){
+//	playerTurn();
+//}
+
+void combatWindow() {
+	combatMenu = true;
+	mainMenu = false;
+	classMenu = false;
+	weaponMenu = false;
+	
+	if(dynamicMonsterHp <= 0)
+		monsterDetermine();
+	
+	playerDetails = "[Class:" + playerClass + "] [HP:" + to_string(dynamicPlayerHp) + "] [POW:" + to_string(playerPower) + "]";
+	monsterDetails = "[Monster:" + monster + "] [HP:" + to_string(dynamicMonsterHp) + "] [POW:" + to_string(monsterPower) + "]";
+	
+	string action[] = {"Attack", "Defend", "Run"};
 	int size = sizeof(action)/sizeof(action[0]);
+	system("cls");
 	display(action, size);
 }
 
-void monsterTurn() {
-	if(monsterAction == true && playerAction == false && monsterAlive == true && playerAlive == true){
-		dynamicChHP -= monsterSTR;
-		if(dynamicChHP <= 0)
-		gameOver();
-		logArray[logIndex] = "> The monster: " + monster + " attacked you. [-" + to_string(monsterSTR) + "]";
-		logIndex++;
-	}
-	monsterAction = false;
-	playerAction = true;
-}
-
-void gameOver() {
-	playerAlive = false;
-	system("cls");
-	cout<<"YOU DIED.";
-	exit(0);
-}
-
-void combatLoop(){
-	playerTurn();
-}
-
-void interaction(const string options[], int size) {
-	int input = _getch();
-    const string selectedOption = options[arrowIndex];
-    if(input == SPACEBAR){
-    	if(menu == true && classMenu == false && combatMenu == false)
-    	menuDisplay(selectedOption);
-    	else if(classMenu == true && menu == false && combatMenu == false){
-    		ChCLASS = selectedOption;
-    		nameDisplay(ChCLASS);
-		} else if(combatMenu == true && menu == false && classMenu == false){
-			cAction = selectedOption;
-			system("cls");
-			display(options, size);
-		}
-    }
-    else if (input == W && arrowIndex > 0){
-        arrowIndex--;
-        system("cls");
-        display(options, size);
-    }
-    else if (input == S && arrowIndex < size - 1){
-        arrowIndex++;
-        system("cls");
-        display(options, size);
-    }
-    else {
-    	system("cls");
-    	display(options, size);
-	}
-}
-
-void display(const string options[], int size) {
-	const string highlight = " -> ";
-    if(menu == true && classMenu == false && combatMenu == false)
-    	cout<<"Welcome to <PLACEHOLDER>."<<endl;
-    else if(classMenu == true && menu == false && combatMenu == false)
-    cout<<"Choose your Class:"<<endl;
-    else if(combatMenu == true && menu == false && classMenu == false) {
-    	combatDisplay();
-    	cout<<"What will you do: "<<endl;
-	}
-    for (int i = 0; i < size; i++) {
-        if (i == arrowIndex) {
-        	if(menu == true)
-            cout << highlight << options[i] << endl;
-            if(classMenu == true && menu == false && combatMenu == false) {
-            	if(options[i] == "Knight") {
-            		cout<< highlight << options[i] << "\t [HP: 100, STR: 10, MG: 3, AGI: 15]"<<endl;
-				} else if (options[i] == "Pyromancer") {
-					cout<< highlight << options[i] << "\t [HP: 80, STR: 3, MG: 16, AGI: 32]"<<endl;
-				} else if (options[i] == "Rogue") {
-					cout<< highlight << options[i] << "\t Haven't decided yet"<<endl;
-				}
-			} else if(combatMenu == true && menu == false && classMenu == false) {
-				cout << highlight << options[i] << endl;
-			}   
-        }
-		 else {
-            cout << "    " << options[i] << endl;
-        }
-    }
-    if(combatMenu == true && menu == false && classMenu == false){
-    	monsterStatsDisplay();
-		combatLoop();
-    	logCount = 0;
-    	string temp[3];
-		for (int i = 99; i >= 0 && logCount < 3; i--) {
-    		if (!logArray[i].empty()) {
-    			temp[logCount] = logArray[i];
-				logCount++;
-			}
-		}
-		if (logCount > 0) {
-        	for (int i = logCount - 1; i >= 0; i--)
-            	cout << temp[i] << endl;
-    } else 
-        cout << "No logs available." << endl;
-    }
-    if(classMenu == true || combatMenu == true) {
-	cout<<"\n\n\nHP[Health Points]: Represents your total health points.\nSTR[Strength]: Determines the amount of physical damage your deal.\nMG[Magic]: Determines the amount of magic damage you deal. \nAGI[Agility]: Determines the odds of you getting hit by enemy attacks."<<endl;
-	}
-    interaction(options, size);
-}
-
-void ChstatsDetermine() {
-	if(ChCLASS == "Knight"){
-		ChHP = Knight[0];
-		ChSTR = Knight[1];
-		ChMG = Knight[2];
-		ChAGI = Knight[3];
-	}
-	else if(ChCLASS == "Pyromancer"){
-		ChHP = Pyromancer[0];
-		ChSTR = Pyromancer[1];
-		ChMG = Pyromancer[2];
-		ChAGI = Pyromancer[3];		
-	}
-	else
-		cout<<"work in progress.";
-	
-}
-
-void combatDisplay() {
-	cout<<"[NAME: "<<ChCLASS<<" "<<name<<"] ";
-	cout<<"[HP: "<<dynamicChHP<<"] ";
-	cout<<"[STR: "<<ChSTR<<"] ";
-	cout<<"[MG: "<<ChMG<<"] ";
-	cout<<"[AGI:"<<ChAGI<<"] "<<endl<<endl;
-}
-
-void monsterStatsDisplay() {
-	cout<<"\n[MONSTER: "<<monster<<"] ";
-	cout<<"[HP: "<<dynamicMonsterHP<<"] ";
-	cout<<"[STR: "<<monsterSTR<<"] ";
-	cout<<"[EXP: "<<monsterXP<<"] "<<endl<<endl;
-}
-
-int main() {
-    string menuOptions[] = { "Start Game", "Continue", "Options", "Exit" };
-    int size = sizeof(menuOptions) / sizeof(menuOptions[0]);
-    display(menuOptions, size);
-}
-
-
-void transitionToGame() {
-	menu = false;
-	classMenu = true;
-	const string classOptions[] = { "Knight", "Pyromancer", "Rogue"};
-	int size = sizeof(classOptions)/sizeof(classOptions[0]);
-	system("cls");
-	display(classOptions, size);
-}
-
-
-void menuDisplay(string selectedOption) {
-	if(selectedOption == "Start Game")
-            transitionToGame();
-        else if(selectedOption == "Continue")
-        	transitionToContinue();
-        else if(selectedOption == "Options")
-            transitionToOptions();
-        else if(selectedOption == "Exit")
-            transitionToExit();
-}
-
-
-void nameDisplay(string ChCLASS) {
-	cout<<"\nEnter Your Name: ";
-	getline(cin, name);
-	cout<<"Your "<<ChCLASS<<" has been named: "<< name <<"."<<endl;
-	cout<<"Press the SPACEBAR to Start the Game:"<<endl;
-	gameStartCheck();
-}
-
-void gameStartCheck() {
-	if(getch() == SPACEBAR){
-		system("cls");
-		gameStart();
-	}
-	else{
-		cout<<"Oops... Try Again."<<endl;
-		gameStartCheck();
-	}
+void combatChoiceDetermine(string action) {
+	if(action == "Attack") {
 		
+		dynamicMonsterHp = dynamicMonsterHp - playerPower;
+	}
+	if(dynamicMonsterHp > 0) {
+		//monster turn
+		dynamicPlayerHp = dynamicPlayerHp - monsterPower;
+		}
+	combatWindow();	
 }
 
-void gameStart() {
-	gameIntro();
-	gameLoop();
-}
-
-void gameIntro() {
-	
+void introWindow() {
+	mainMenu = false;
+	classMenu = false;
+	weaponMenu = false;
+	combatMenu = false;
 	system("cls");
-	int introSceneNumber = randomNumberGenerator(5);
-	
+	int introSceneNumber = randomNumberGenerator(1 , 5);
 	if(introSceneNumber == 1){
 		cout<<"The first thing you notice is the smell: damp earth, rotting wood, and the faint metallic tang of blood. As your eyes adjust to the gloom,"<<endl;
 		cout<<"you realize you're in a dungeon-a vast network of stone corridors that twist and coil like a serpent. Chains hang form the walls,"<<endl;
@@ -422,30 +308,216 @@ void gameIntro() {
 	cout<<""<<endl<<endl;
 	cout<<"As you rise and begin to explore, you come across your first foe..."<<endl;
 	getch();
-	return;
+	combatWindow();
 }
 
-void gameLoop(){
-	combatMenu = true;
-	menu = false;
+void weaponChoiceDetermine(string weapon) {
+	playerWeapon = weapon;
+	introWindow();
+}
+
+void windowDetermine(string selectedOption) {
+    if(mainMenu == true && classMenu == false && weaponMenu == false && combatMenu == false)
+    	menuChoiceDetermine(selectedOption);
+   	else if(classMenu == true && mainMenu == false && weaponMenu == false && combatMenu == false)
+    	classChoiceDetermine(selectedOption);
+	else if(weaponMenu == true && mainMenu == false && classMenu == false && combatMenu == false)
+		weaponChoiceDetermine(selectedOption);
+	else if(combatMenu == true && mainMenu == false && classMenu == false && weaponMenu == false)
+		combatChoiceDetermine(selectedOption);
+}
+
+void interaction(string options[], int size) {
+	int input = _getch();
+    string selectedOption = options[arrowIndex];
+    
+	if(input == SPACEBAR)
+	windowDetermine(selectedOption);
+	
+    if (input == W && arrowIndex > 0){
+        arrowIndex--;
+        system("cls");
+        display(options, size);
+    }
+    else if (input == S && arrowIndex < size - 1){
+        arrowIndex++;
+        system("cls");
+        display(options, size);
+    }
+    else {
+    	system("cls");
+    	display(options, size);
+	}
+}
+
+void topWindowDisplay() {
+	if(combatMenu == true && mainMenu == false && weaponMenu == false && classMenu == false)
+		cout<<"What will you Do: "<<endl;
+	else if(mainMenu == true && classMenu == false && weaponMenu == false && combatMenu == false)
+    	cout<<"Welcome to <PLACEHOLDER>."<<endl;
+    else if(classMenu == true && mainMenu == false && weaponMenu == false && combatMenu == false)
+    	cout<<"Choose your Class:"<<endl;
+    else if(weaponMenu == true && mainMenu == false && classMenu == false && combatMenu == false)
+    	cout<<"Select your Weapon: "<<endl;
+}
+
+void display(string options[], int size) {
+	
+	cout<<playerDetails<<endl<<endl;
+	topWindowDisplay();
+
+	const string highlight = " -> ";
+
+    for (int i = 0; i < size; i++) {
+        if (i == arrowIndex) {
+        	string option = options[i];
+            if(classMenu == true && mainMenu == false && weaponMenu == false && combatMenu == false)
+            	classDisplay(option, highlight); //exceptional case since i want to display stats aswell
+            else if(weaponMenu == true && mainMenu == false && classMenu == false && combatMenu == false)
+				weaponDisplay(option, highlight);
+           	else 
+				cout << highlight << option << endl;  
+        }
+		else
+            cout << "    " << options[i] << endl;
+}
+//    	logCount = 0;
+//    	string temp[3];
+//		for (int i = 99; i >= 0 && logCount < 3; i--) {
+//    		if (!logArray[i].empty()) {
+//    			temp[logCount] = logArray[i];
+//				logCount++;
+//			}
+//		}
+//		if (logCount > 0) {
+//        	for (int i = logCount - 1; i >= 0; i--)
+//            	cout << temp[i] << endl;
+//    } else 
+//        cout << "No logs available." << endl;
+//    }
+	cout<<endl<<endl<<monsterDetails<<endl;
+	descriptionDisplay();
+	interaction(options, size);
+}
+
+
+void descriptionDisplay() {
+	if(classMenu == true) {
+		cout<<"\nStats Description:"<<endl;
+	} else if(weaponMenu == true) {
+		cout<<"\nWeapon Stats Description:"<<endl;
+	}
+}
+
+void weaponDisplay(string weapon, const string highlight) {
+	cout<< highlight << weapon;
+	
+	if(playerClass == "Knight"){
+		if(weapon == "Battleaxe")
+			cout<< "\t [1d8 + POW]"<<endl;
+		else if(weapon == "Longbow")
+			cout<< "\t [1d5 + POW]"<<endl;
+		else
+			cout<< "\t [1d13 + POW]"<<endl;
+	}
+//	else if(playerClass == "Pyromancer") {
+//	}	
+}
+
+void classDisplay(string class_, const string highlight) {
+	if(class_ == "Knight")
+   	cout<< highlight << class_ << "\t [HP: 100, STR: 10, MG: 3, AGI: 15]"<<endl;
+	else if (class_ == "Pyromancer") 
+	cout<< highlight << class_ << "\t [HP: 80, STR: 3, MG: 16, AGI: 32]"<<endl;
+	else if (class_ == "Rogue")
+	cout<< highlight << class_ << "\t Haven't decided yet"<<endl;
+}
+
+int main() {
+	menuWindow();
+}
+
+void menuWindow() {
+	mainMenu = true;
 	classMenu = false;
-	const string action[] = {"Attack", "Defend", "Run"};
-	int size = sizeof(action)/sizeof(action[0]);
-	ChstatsDetermine();
-	monsterDetermine();
-	monsterAlive = true;
-	monsterStatsDetermine();
-	dynamicMonsterHP = monsterHP;
-	dynamicChHP= ChHP;
-	cout<<"\nYou encountered a: "<<monster;
-	getch();
-	system("cls");
-	display(action, size);
+	weaponMenu = false;
+	combatMenu = false;
+	string menuOptions[] = { "Start Game", "Continue", "Options", "Exit" };
+    int size = sizeof(menuOptions) / sizeof(menuOptions[0]);
+    system("cls");
+    display(menuOptions, size);
 }
 
-string monsterDetermine() {
-	int monsterNumber = randomNumberGenerator(2);
-	switch(monsterNumber){
+void classWindow() {
+	classMenu = true;
+	mainMenu = false;
+	weaponMenu = false;
+	combatMenu = false;
+	string classOptions[] = { "Knight", "Pyromancer", "Rogue"};
+	int size = sizeof(classOptions)/sizeof(classOptions[0]);
+	system("cls");
+	display(classOptions, size);
+}
+
+void menuChoiceDetermine(string selectedOption) {
+	if(selectedOption == "Start Game")
+        classWindow();
+    else if(selectedOption == "Continue")
+    	transitionToContinue();
+    else if(selectedOption == "Options")
+        transitionToOptions();
+    else if(selectedOption == "Exit")
+    	transitionToExit();
+}
+
+void classChoiceDetermine(string selectedOption) {
+    playerClass = selectedOption;
+    
+    if (playerClass == "Knight") {
+        playerHp = Knight[0];
+        playerPower = Knight[1];
+        playerMagic = Knight[2];
+        playerAgility = Knight[3];
+    }
+    else if (playerClass == "Pyromancer") {
+        playerHp = Pyromancer[0];
+        playerPower = Pyromancer[1];
+        playerMagic = Pyromancer[2];
+        playerAgility = Pyromancer[3];
+    }
+    else {
+        cout << "Work in progress for this class." << endl;
+        return;
+    }
+	dynamicPlayerHp = playerHp;
+    weaponWindow();
+}
+
+void weaponWindow() {
+    weaponMenu = true;
+    classMenu = false;
+    mainMenu = false;
+    combatMenu = false;
+
+    string weaponOptions[3];
+    if (playerClass == "Knight") {
+        weaponOptions[0] = "Battleaxe";
+        weaponOptions[1] = "Longbow";
+        weaponOptions[2] = "Zweihander";
+    } else if (playerClass == "Pyromancer") {
+        weaponOptions[0] = "Fire Staff";
+        weaponOptions[1] = "Flame Wand";
+        weaponOptions[2] = "Pyromancer's Tome";
+    }
+
+    int size = sizeof(weaponOptions) / sizeof(weaponOptions[0]);
+    system("cls");
+    display(weaponOptions, size);
+}
+
+void monsterDetermine() {
+	int monsterNumber = randomNumberGenerator(1 , 2);
+	switch(monsterNumber) {
 		case 1:
 			monster = "Goblin";
 			break;
@@ -453,25 +525,23 @@ string monsterDetermine() {
 			monster = "Gargoyle";
 			break;
 	}
-	return monster;
+	monsterStatsDetermine();
 }
 
 void monsterStatsDetermine() {
 	if(monster == "Goblin"){
-		monsterHP = Goblin[0];
-		monsterSTR = Goblin[1];
-		monsterXP = Goblin[2];
+		monsterHp = Goblin[0];
+		monsterPower = Goblin[1];
+		monsterExp = Goblin[2];
 	} else if(monster == "Gargoyle") {
-		monsterHP = Gargoyle[0];
-		monsterSTR = Gargoyle[1];
-		monsterXP = Gargoyle[2];	
+		monsterHp = Gargoyle[0];
+		monsterPower = Gargoyle[1];
+		monsterExp = Gargoyle[2];	
 	}
-	return;
+	dynamicMonsterHp = monsterHp;
 }
 
-int randomNumberGenerator(int limit) {
-	int min = 1;
-	int max = limit;
+int randomNumberGenerator(int min, int max) {
 	srand(time(NULL));
 	int random_number = rand() % (max - min +1) + min;
 	return random_number;
