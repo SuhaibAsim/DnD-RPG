@@ -205,15 +205,21 @@ void combatWindow() {
 }
 
 void combatChoiceDetermine(string action) {
+	bool guard;
 	if(action == "Attack") {
-		
 		dynamicMonsterHp = dynamicMonsterHp - playerPower;
-	}
+	} else if(action == "Defend")
+		guard = true;
 	if(dynamicMonsterHp > 0) {
 		//monster turn
-		dynamicPlayerHp = dynamicPlayerHp - monsterPower;
+		if(guard == true) {
+			dynamicPlayerHp = dynamicPlayerHp - (monsterPower/2);
+			guard = false;
+		} else {
+			dynamicPlayerHp = dynamicPlayerHp - monsterPower;
 		}
-	combatWindow();	
+	}
+	combatWindow();
 }
 
 void introWindow() {
