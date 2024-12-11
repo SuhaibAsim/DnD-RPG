@@ -40,6 +40,10 @@ int Pyromancer[2] = {80, 16};
 //[0]HP [1]POW [2]FOR [3]XP
 int Goblin[] = {20, 3, 5, 5};
 int Gargoyle[] = {35, 5, 8, 15};
+int ShadowWerewolf[] = {70, 13, 15, 100};
+int Hydra[] = {50, 10, 12, 70};
+int Firedrake[] = {100, 3, 4, 50};
+int UndeadWarrior[] = {50, 7, 10, 20};
 
 //character stats and shit
 int playerExp = 0;
@@ -611,7 +615,11 @@ void weaponWindow() {
 }
 
 void monsterDetermine() {
-	int monsterNumber = randomNumberGenerator(1 , 2);
+	int monsterNumber;
+	if(playerLevel < 2)
+		monsterNumber = randomNumberGenerator(1 , 2);
+	else
+		monsterNumber = randomNumberGenerator(1, 6);
 	switch(monsterNumber) {
 		case 1:
 			monster = "Goblin";
@@ -619,8 +627,28 @@ void monsterDetermine() {
 			getch();
 			break;
 		case 2:
-			monster = "Gargoyle";
+			monster = "ShadowWerewolf";
 			cout<<"\nA faint rumble shakes the cathedral. With a thunderous roar, a gargoyle breaks free, stone claws poised to strike."<<endl;
+			getch();
+			break;
+		case 3:
+			monster = "Hydra";
+			cout<<"\nThe ground trembles as a Hydra emerges from the swamp, its many heads snapping hungrily. Venom drips from its fangs as it roars, ready to strike."<<endl;
+			getch();
+			break;
+		case 4:
+			monster = "Shadow Werewolf";
+			cout<<"\nA growl cuts through the darkness as red eyes glow. The Shadow Werewolf emerges, claws ready to strike."<<endl;
+			getch();
+			break;
+		case 5:
+			monster = "Firedrake";
+			cout<<"\nThe air blazes with heat as a FireDrake descends, flames curling around its wings. Its molten eyes lock onto you, and a roar shakes the ground."<<endl;
+			getch();
+			break;
+		default:
+			monster = "Undead Warrior";
+			cout<<"\nRattling echoes through the air as a warrior inflicted with the undead curse steps forward, sword in hand, its hollow eyes glowing with eerie light."<<endl;
 			getch();
 			break;
 	}
@@ -638,6 +666,26 @@ void monsterStatsDetermine() {
 		monsterStr = Gargoyle[1];
 		monsterPower = Gargoyle[2];
 		monsterExp = Gargoyle[3];	
+	} else if(monster == "Shadow Werewolf") {
+		monsterHp = ShadowWerewolf[0];
+		monsterStr = ShadowWerewolf[1];
+		monsterPower = ShadowWerewolf[2];
+		monsterExp = ShadowWerewolf[3];	
+	} else if(monster == "Hydra") {
+		monsterHp = Hydra[0];
+		monsterStr = Hydra[1];
+		monsterPower = Hydra[2];
+		monsterExp = Hydra[3];	
+	} else if(monster == "Firedrake") {
+		monsterHp = Firedrake[0];
+		monsterStr = Firedrake[1];
+		monsterPower = Firedrake[2];
+		monsterExp = Firedrake[3];	
+	} else if(monster == "Undead Warrior") {
+		monsterHp = UndeadWarrior[0];
+		monsterStr = UndeadWarrior[1];
+		monsterPower = UndeadWarrior[2];
+		monsterExp = UndeadWarrior[3];		
 	}
 	dynamicMonsterHp = monsterHp;
 }
