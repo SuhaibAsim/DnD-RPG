@@ -73,18 +73,14 @@ void transitionToExit();
 void gameStartplayereck();
 void gameStart();
 void gameIntro();
-void gameLoop();
 void playerStatsDisplay();
-void combatDisplay();
 void monsterDetermine();
 void monsterStatsDetermine();
 void monsterStatsDisplay();
-void playerTurn();
-//void monsterTurn();
 void combatLoop();
-void gameOver();
-//void victory();
 void death();
+
+void combatDisplay(string option, const string highlight);
 
 void classChoiceDetermine(string);
 int randomNumberGenerator(int , int);
@@ -119,77 +115,6 @@ void transitionToExit() {
     cout << "Goodbye.";
 }
 
-//void playerTurn() {
-//	if(playerAction == true && playerAlive == true) {
-//		if (cAction == "Attack") {
-//        	playerAction = false;
-        	
-//        	dynamicMonsterHP -= playerPower;
-//        	if (dynamicMonsterVIG <= 0)
-////            	victory();
-//        	logIndex++;
-//    }
-//    if (cAction == "Defend") {
-//        playerAction = false;
-//        dynamicplayerHp -= monsterSTR / 2;
-//        logArray[logIndex] = "> You defend against the monster: " + monster;
-//        logIndex++;
-//    }
-//    if (cAction == "Run") {
-//        playerAction = false;
-//        logArray[logIndex] = "> You attempt to run from the monster: " + monster;
-//        logIndex++;
-//    }
-//}
-//}
-    
-//    cAction = "";
-//    monsterAction = true;
-//    monsterTurn();
-//    return;
-//}
-
-//void victory() {
-//	monsterAlive = false;
-//	cAction = "";
-//	cout<<"\n\nYou slayed the "<<monster<<endl;
-//	monsterDetermine();
-//	monsterStatsDetermine();
-//	monsterAlive = true;
-//	dynamicMonsterHP = monsterHP;
-//	for(int i = 0; i < 100; i++ )
-//		logArray[i] = "\0";
-//	cout<<"You encounter another monster: "<<monster<<endl;
-//	getch();
-//	system("cls");
-//	const string action[] = {"Attack", "Defend", "Run"};
-//	int size = sizeof(action)/sizeof(action[0]);
-////	display(action, size);
-//}
-
-//void monsterTurn() {
-//	if(monsterAction == true && playerAction == false && monsterAlive == true && playerAlive == true){
-//		dynamicplayerHp -= monsterSTR;
-//		if(dynamicplayerHp <= 0)
-//		gameOver();
-//		logArray[logIndex] = "> The monster: " + monster + " attacked you. [-" + to_string(monsterSTR) + "]";
-//		logIndex++;
-//	}
-//	monsterAction = false;
-//	playerAction = true;
-//}
-//
-//void gameOver() {
-//	playerAlive = false;
-//	system("cls");
-//	cout<<"YOU DIED.";
-//	exit(0);
-//}
-
-//void combatLoop(){
-//	playerTurn();
-//}
-
 void combatWindow() {
 	combatMenu = true;
 	mainMenu = false;
@@ -211,50 +136,108 @@ void combatWindow() {
 }
 
 void reward() {
-	system("cls");
+	playerPotion++;
 	cout<<"As the dust settles, your gaze falls upon a small, glimmering vial nestled amidst the debris. The liquid within glows a soft crimson,"<<endl;
-	cout<<"swirling as if alive — a Potion of Healing. Its warmth radiates through the glass, promising to restore strength to the weary and mend wounds inflicted by the dungeon's perils."<<endl;
-	cout<<""<<endl;
+	cout<<"swirling as if alive — a Potion of Healing. Its warmth radiates through the glass, promising to restore strength"<<endl;
+	cout<<"to the weary and mend wounds inflicted by the dungeon's perils.";
+	cout<<""<<endl<<endl;
+	getch();
 	cout<<"With careful hands, you claim the potion, knowing it may be the difference between survival and oblivion in the trials ahead."<<endl;
+	getch();
+	cout<<"\nPotions in Inventory: "<<playerPotion<<endl;
+	getch();
+	cout<<"\nBut before you can even catch your breath, the ground trembles beneath your feet, and from the shadows, a new monster emerges—its eyes locked onto you,"<<endl;
+	cout<<"hunger in its gaze. This grueling gauntlet is far from over."<<endl;
+	getch();
+}
+
+void battleEnd() {
+	system("cls");
+	int choiceNum = randomNumberGenerator(1 , 5);
+	if(choiceNum == 1) {
+		cout<<"The last of the monster crumples to the floor, its lifeless form casting long shadows in the dim light. Silence follows,"<<endl;
+		cout<<"broken only by the sound of your own breathing. The dungeon feels quieter now, as if even the walls are waiting for your next move.";
+	} else if(choiceNum == 2) {
+		cout<<"With a final, decisive blow, the creature falls, his twisted form dissolving into the shadow from which it came. The air grows still, the echo"<<endl;
+		cout<<"of battle fading into the silence of the dungeon. For now, the danger has passed, but the path ahead remains uncertain.";
+	} else if(choiceNum == 3) {
+		cout<<"The vile creature collapses, defeated and motionless. A heavy silence settles over the area, broken only by the faint drip of blood from the walls."<<endl;
+		cout<<"The victory is yours, but the dungeon is far from conquered. What awaits you deeper within?";
+	} else if(choiceNum == 4) {
+		cout<<"The monstrous threat has been vanquished, his body littering the ground, marking the end of this skirmish. You stand amidst the carnage,"<<endl;
+		cout<<"your breath heavy and your body sore, but victorious. The dungeon’s dark heart still beats ahead, waiting for you.";
+	} else if(choiceNum == 5) {
+		cout<<"As the final creature falls with a thud, the echoes of battle die away. The dungeon, once alive with the sounds of chaos,"<<endl;
+		cout<<"now falls into an eerie quiet. The threat has passed for now but the deeper dangers of the dungeon loom ahead, waiting for the next challenge.";
+	}
+	cout<<""<<endl<<endl;
+	cout<<"Your victory brings hope in this wretched place. As you rest, you feel the strength of your newfound experience. [EXP: +"<<monsterExp<<"]"<<endl<<endl;
+	getch();
+}
+
+void rewardFail() {
+	cout<<"The creature lies still, but upon searching, you find no treasure or spoils to claim. Before you can catch your breath,"<<endl;
+	cout<<"a new foe emerges from the shadows, ready to test your strength once more."<<endl;
 	getch();
 }
 
 void combatChoiceDetermine(string action) {
 
+	bool monsterSpawn = true;
+
 	if(action == "Attack") {
 		rollAttack =  randomNumberGenerator(weaponStr[0] , weaponStr[1]);
 		dynamicMonsterHp = dynamicMonsterHp - (rollAttack + playerPower);
-		logArray[logIndex] = "> You attack the monster: " + monster + " [DMG: " + to_string(playerPower) + "+" + to_string(rollAttack) + "]";
+		logArray[logIndex] = "> You attack the monster: " + monster + " [DMG: " + to_string(rollAttack) + "+" + to_string(playerPower) + " = " + to_string(rollAttack+playerPower) + "]";
 		logIndex++;
 		if(dynamicMonsterHp <= 0) {
-			if(randomNumberGenerator(1 , 100) <= 60) {
+			battleEnd();
+			if(randomNumberGenerator(1 , 100) <= 60)
 				reward();
-			}
+			else
+				rewardFail();
+			for(int i = 0; i < 100; i++)
+				logArray[i].clear();
 			action = "";
-			logArray[logIndex] = "> You fell the beast with a mighty blow, but before you can catch your breath, another emerges to take its place.";
-			logIndex++;
-			monsterDetermine();
 		}
-}
-	if(action == "Heal") {
+	}
+	else if(action == "Heal") {
 		if(playerPotion > 0){
 			dynamicPlayerHp = dynamicPlayerHp + 30;
 			playerPotion--;
-			logArray[logIndex] = "> You healed your health [HP: +30], Remaining Potions: "  + to_string(playerPotion);
+			logArray[logIndex] = "> You drink the potion to regain your vigour [HP: +30], Remaining Potions: "  + to_string(playerPotion);
 			logIndex++;
 		} else {
 			logArray[logIndex] = "> You have run out of potions";
 			logIndex++;
 		}
 	}
+	else if(action == "Run") {
+		if(randomNumberGenerator(1, 100) < 50) {
+			system("cls");
+			cout<<"You manage to escape successfully, putting distance between yourself and the danger. However,"<<endl;
+			cout<<"your relief is short-lived, as the path ahead soon reveals yet another looming monstrosity waiting to challenge you."<<endl;
+			monsterSpawn = false;
+			for(int i = 0; i < 100; i++)
+				logArray[i].clear();
+			getch();
+		} else {
+			logArray[logIndex] = "> You were unable to run away.";
+			logIndex++;
+		}
+	}
 	
-	if(dynamicMonsterHp > 0) {
+	
+	if(dynamicMonsterHp > 0 && monsterSpawn == true) {
 		int monsterRollAttack = randomNumberGenerator(1 , monsterStr);
 		dynamicPlayerHp = dynamicPlayerHp - (monsterRollAttack + monsterPower);
-		logArray[logIndex] = "> The monster: " + monster + " attacks you " + "[DMG: " + to_string(monsterRollAttack) + "+" + to_string(monsterPower) + "]";
+		logArray[logIndex] = "> The monster: " + monster + " attacks you " + "[DMG: " + to_string(monsterRollAttack) + "+" + to_string(monsterPower) + " = " + to_string(monsterRollAttack+monsterPower) + "]";
 		logIndex++;
 		if(dynamicPlayerHp <= 0)
 			death();
+	} else {
+		monsterSpawn = true;
+		monsterDetermine();
 	}
 	combatWindow();
 }
@@ -400,6 +383,7 @@ void weaponChoiceDetermine(string weapon) {
 }
 
 void windowDetermine(string selectedOption) {
+	arrowIndex = 0;
     if(mainMenu == true && classMenu == false && weaponMenu == false && combatMenu == false)
     	menuChoiceDetermine(selectedOption);
    	else if(classMenu == true && mainMenu == false && weaponMenu == false && combatMenu == false)
@@ -434,19 +418,21 @@ void interaction(string options[], int size) {
 }
 
 void topWindowDisplay() {
-	if(combatMenu == true && mainMenu == false && weaponMenu == false && classMenu == false)
+	if(combatMenu == true && mainMenu == false && weaponMenu == false && classMenu == false) {
+		cout<<playerDetails<<endl<<endl;
 		cout<<"What will you Do: "<<endl;
+	}
 	else if(mainMenu == true && classMenu == false && weaponMenu == false && combatMenu == false)
     	cout<<"Welcome to <PLACEHOLDER>."<<endl;
     else if(classMenu == true && mainMenu == false && weaponMenu == false && combatMenu == false)
     	cout<<"Choose your Class:"<<endl;
     else if(weaponMenu == true && mainMenu == false && classMenu == false && combatMenu == false)
     	cout<<"Select your Weapon: "<<endl;
+    cout<<"\n";
 }
 
 void display(string options[], int size) {
 	
-	cout<<playerDetails<<endl<<endl;
 	topWindowDisplay();
 
 	const string highlight = " -> ";
@@ -455,9 +441,11 @@ void display(string options[], int size) {
         if (i == arrowIndex) {
         	string option = options[i];
             if(classMenu == true && mainMenu == false && weaponMenu == false && combatMenu == false)
-            	classDisplay(option, highlight); //exceptional case since i want to display stats aswell
+            	classDisplay(option, highlight);
             else if(weaponMenu == true && mainMenu == false && classMenu == false && combatMenu == false)
 				weaponDisplay(option, highlight);
+			else if(combatMenu == true && mainMenu == false && classMenu == false && weaponMenu == false)
+				combatDisplay(option, highlight);
            	else 
 				cout << highlight << option << endl;  
         }
@@ -468,6 +456,15 @@ void display(string options[], int size) {
 	cout<<endl<<endl<<monsterDetails<<endl<<endl;
 	descriptionDisplay();
 	interaction(options, size);
+}
+
+void combatDisplay(string option, const string highlight) {
+	if(option == "Attack")
+		cout << highlight << option <<"\t [FOR + POW]"<<endl;
+	else if(option == "Heal")
+	   	cout << highlight << option << "\t [Potions: " << playerPotion << "]" << endl;
+	else
+		cout<< highlight << option << endl;
 }
 
 void logDisplay() {
@@ -492,7 +489,12 @@ void logDisplay() {
 void descriptionDisplay() {
 	string classStatsDes[] = {"CLASS STATS DESCRIPTION:","VIG [Vigour]: Your vitality and endurance. If it drops to zero, your character falls.", "POW [Power]: Your physical strength, used by Knights to boost weapon damage.", "MAG [Magic]: Your magical energy, used by Pyromancers to enhance spell damage."};
 	string weaponStatsDes[] = {"WEAPON STATS DESCRIPTION:","FOR [Force]: The strength of your attacks, rolled as dice.", "1d8: Rolls one 8-sided die and takes the result.", "2d6: Rolls two 6-sided dice and sums their results.", "3d12: Rolls three 12-sided dice and totals the results."};
-	if(classMenu == true) {
+	if(mainMenu == true) {
+		cout<<"[W]: Navigate upwards."<<endl;
+		cout<<"[S]: Navigate downwards."<<endl;
+		cout<<"[SPACEBAR]: Confirm action."<<endl;
+	}
+	else if(classMenu == true) {
 		for(int i=0; i<4; i++)
 		cout<<classStatsDes[i]<<endl;
 	} else if(weaponMenu == true) {
@@ -613,9 +615,13 @@ void monsterDetermine() {
 	switch(monsterNumber) {
 		case 1:
 			monster = "Goblin";
+			cout<<"\nA rustling from the bushes stops you in your tracks. A goblin emerges, its red eyes gleaming as it snarls, 'Fresh meat!'"<<endl;
+			getch();
 			break;
 		case 2:
 			monster = "Gargoyle";
+			cout<<"\nA faint rumble shakes the cathedral. With a thunderous roar, a gargoyle breaks free, stone claws poised to strike."<<endl;
+			getch();
 			break;
 	}
 	monsterStatsDetermine();
