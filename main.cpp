@@ -14,6 +14,7 @@ bool mainMenu;
 bool classMenu;
 bool combatMenu;
 bool weaponMenu;
+bool firstSpawn = false;
 
 string name;
 string monster;
@@ -22,20 +23,23 @@ string playerWeapon;
 string logArray[100];
 int logIndex = 0;
 int logCount = 0;
-
+int rollAttack = 0;
+int weaponStr[2];
+int playerPotion = 2;
 string playerDetails;
 string monsterDetails;
+void logDisplay();
+
 
 //actual game shit from here on
 //classes the player can choose from
 //[0]HP [1]STR [2]MG [3]AGI
-int Knight[4] = {100, 10, 3, 15};
-int Pyromancer[4] = {80, 3, 16, 32};
-int Rogue[4];
+int Knight[2] = {100, 2};
+int Pyromancer[2] = {80, 16};
 
-//[0]HP [1]STR [3]XP
-int Goblin[] = {20, 5, 5};
-int Gargoyle[] = {35, 8, 15};
+//[0]HP [1]POW [2]FOR [3]XP
+int Goblin[] = {20, 3, 5, 5};
+int Gargoyle[] = {35, 5, 8, 15};
 
 //character stats and shit
 int playerExp = 0;
@@ -43,11 +47,10 @@ int playerLevel = 0;
 int playerHp;
 int dynamicPlayerHp;
 int playerPower;
-int playerMagic;
-int playerAgility;
 
 //monster stats
 int monsterHp;
+int monsterStr;
 int monsterPower;
 int monsterExp;
 
@@ -81,6 +84,7 @@ void playerTurn();
 void combatLoop();
 void gameOver();
 //void victory();
+void death();
 
 void classChoiceDetermine(string);
 int randomNumberGenerator(int , int);
@@ -119,9 +123,9 @@ void transitionToExit() {
 //	if(playerAction == true && playerAlive == true) {
 //		if (cAction == "Attack") {
 //        	playerAction = false;
-//        	logArray[logIndex] = "> You attack the monster: " + monster + " [-" + to_string(playerPower) + "]";
+        	
 //        	dynamicMonsterHP -= playerPower;
-//        	if (dynamicMonsterHP <= 0)
+//        	if (dynamicMonsterVIG <= 0)
 ////            	victory();
 //        	logIndex++;
 //    }
@@ -192,34 +196,83 @@ void combatWindow() {
 	classMenu = false;
 	weaponMenu = false;
 	
-	if(dynamicMonsterHp <= 0)
+	if (firstSpawn == false){
 		monsterDetermine();
+		firstSpawn = true;
+	}
+		
+	playerDetails = "[Class:" + playerClass + "] [VIG:" + to_string(dynamicPlayerHp) + "] [POW:" + to_string(playerPower) + "] [FOR:" + to_string(weaponStr[1]) + "]";
+	monsterDetails = "[Monster:" + monster + "] [VIG:" + to_string(dynamicMonsterHp) + "] [POW:" + to_string(monsterPower) + "] [FOR:" + to_string(monsterStr) + "]";
 	
-	playerDetails = "[Class:" + playerClass + "] [HP:" + to_string(dynamicPlayerHp) + "] [POW:" + to_string(playerPower) + "]";
-	monsterDetails = "[Monster:" + monster + "] [HP:" + to_string(dynamicMonsterHp) + "] [POW:" + to_string(monsterPower) + "]";
-	
-	string action[] = {"Attack", "Defend", "Run"};
+	string action[] = {"Attack", "Heal", "Run"};
 	int size = sizeof(action)/sizeof(action[0]);
 	system("cls");
 	display(action, size);
 }
 
+void reward() {
+	system("cls");
+	cout<<"As the dust settles, your gaze falls upon a small, glimmering vial nestled amidst the debris. The liquid within glows a soft crimson,"<<endl;
+	cout<<"swirling as if alive — a Potion of Healing. Its warmth radiates through the glass, promising to restore strength to the weary and mend wounds inflicted by the dungeon's perils."<<endl;
+	cout<<""<<endl;
+	cout<<"With careful hands, you claim the potion, knowing it may be the difference between survival and oblivion in the trials ahead."<<endl;
+	getch();
+}
+
 void combatChoiceDetermine(string action) {
-	bool guard;
+
 	if(action == "Attack") {
-		dynamicMonsterHp = dynamicMonsterHp - playerPower;
-	} else if(action == "Defend")
-		guard = true;
-	if(dynamicMonsterHp > 0) {
-		//monster turn
-		if(guard == true) {
-			dynamicPlayerHp = dynamicPlayerHp - (monsterPower/2);
-			guard = false;
+		rollAttack =  randomNumberGenerator(weaponStr[0] , weaponStr[1]);
+		dynamicMonsterHp = dynamicMonsterHp - (rollAttack + playerPower);
+		logArray[logIndex] = "> You attack the monster: " + monster + " [DMG: " + to_string(playerPower) + "+" + to_string(rollAttack) + "]";
+		logIndex++;
+		if(dynamicMonsterHp <= 0) {
+			if(randomNumberGenerator(1 , 100) <= 60) {
+				reward();
+			}
+			action = "";
+			logArray[logIndex] = "> You fell the beast with a mighty blow, but before you can catch your breath, another emerges to take its place.";
+			logIndex++;
+			monsterDetermine();
+		}
+}
+	if(action == "Heal") {
+		if(playerPotion > 0){
+			dynamicPlayerHp = dynamicPlayerHp + 30;
+			playerPotion--;
+			logArray[logIndex] = "> You healed your health [HP: +30], Remaining Potions: "  + to_string(playerPotion);
+			logIndex++;
 		} else {
-			dynamicPlayerHp = dynamicPlayerHp - monsterPower;
+			logArray[logIndex] = "> You have run out of potions";
+			logIndex++;
 		}
 	}
+	
+	if(dynamicMonsterHp > 0) {
+		int monsterRollAttack = randomNumberGenerator(1 , monsterStr);
+		dynamicPlayerHp = dynamicPlayerHp - (monsterRollAttack + monsterPower);
+		logArray[logIndex] = "> The monster: " + monster + " attacks you " + "[DMG: " + to_string(monsterRollAttack) + "+" + to_string(monsterPower) + "]";
+		logIndex++;
+		if(dynamicPlayerHp <= 0)
+			death();
+	}
 	combatWindow();
+}
+
+void death() {
+	system("cls");
+	cout<<"Darkness closes in, cold and unyielding. The clinking chains fall silent, and the echoes of your footsteps fade into nothing. The weight of your failure"<<endl;
+	cout<<"is crushing - a forgotten soul lost to the labyrinth."<<endl;
+	getch();
+	cout<<""<<endl;
+	cout<<"The serpent coils tighter, the dungeon consuming you whole. Somewhere far above, the faint sliver of light dims, swallowed by the horrors you could not overcome."<<endl;
+	cout<<"The goblins cackle in the distance, the dragon roars triumphantly, and the presence in the shadows stirs, its hunger sated—for now."<<endl;
+	getch();
+	cout<<""<<endl;
+	cout<<"Your journey ends here, but the dungeon remains. Waiting. Watching. Perhaps another will rise where you have fallen."<<endl;
+	cout<<""<<endl;
+	cout<<"GAME OVER!";
+	exit(0);
 }
 
 void introWindow() {
@@ -319,6 +372,30 @@ void introWindow() {
 
 void weaponChoiceDetermine(string weapon) {
 	playerWeapon = weapon;
+	if(playerClass == "Knight") {
+		if(playerWeapon == "Battleaxe") {
+			weaponStr[0] = 1;
+			weaponStr[1] = 8;
+		} else if (playerWeapon == "Longbow") {
+			weaponStr[0] = 1;
+			weaponStr[1] = 5;
+		} else if (playerWeapon == "Zweihander") {
+			weaponStr[0] = 2;
+			weaponStr[1] = 26;
+		}	
+	} else if(playerClass == "Pyromancer") {
+		if(playerWeapon == "Fire Staff") {
+			weaponStr[0] = 2;
+			weaponStr[1] = 6;
+		} else if(playerWeapon == "Flame Wand") {
+			weaponStr[0] = 1;
+			weaponStr[1] = 4;
+		} else if(playerWeapon == "Pyromancer's Tome") {
+			weaponStr[0] = 3;
+			weaponStr[1] = 6;
+		}
+	}
+
 	introWindow();
 }
 
@@ -387,31 +464,46 @@ void display(string options[], int size) {
 		else
             cout << "    " << options[i] << endl;
 }
-//    	logCount = 0;
-//    	string temp[3];
-//		for (int i = 99; i >= 0 && logCount < 3; i--) {
-//    		if (!logArray[i].empty()) {
-//    			temp[logCount] = logArray[i];
-//				logCount++;
-//			}
-//		}
-//		if (logCount > 0) {
-//        	for (int i = logCount - 1; i >= 0; i--)
-//            	cout << temp[i] << endl;
-//    } else 
-//        cout << "No logs available." << endl;
-//    }
-	cout<<endl<<endl<<monsterDetails<<endl;
+	logDisplay();
+	cout<<endl<<endl<<monsterDetails<<endl<<endl;
 	descriptionDisplay();
 	interaction(options, size);
 }
 
+void logDisplay() {
+	if(combatMenu == true && mainMenu == false && classMenu == false && weaponMenu == false) {
+		cout<<"\n\n";
+		logCount = 0;
+    	string temp[3];
+		for (int i = 99; i >= 0 && logCount < 3; i--) {
+    		if (!logArray[i].empty()) {
+    			temp[logCount] = logArray[i];
+				logCount++;
+			}
+		}
+		if (logCount > 0) {
+        	for (int i = logCount - 1; i >= 0; i--)
+            	cout << temp[i] << endl;
+    } else 
+        cout << "No logs available." << endl;
+	}
+}
 
 void descriptionDisplay() {
+	string classStatsDes[] = {"CLASS STATS DESCRIPTION:","VIG [Vigour]: Your vitality and endurance. If it drops to zero, your character falls.", "POW [Power]: Your physical strength, used by Knights to boost weapon damage.", "MAG [Magic]: Your magical energy, used by Pyromancers to enhance spell damage."};
+	string weaponStatsDes[] = {"WEAPON STATS DESCRIPTION:","FOR [Force]: The strength of your attacks, rolled as dice.", "1d8: Rolls one 8-sided die and takes the result.", "2d6: Rolls two 6-sided dice and sums their results.", "3d12: Rolls three 12-sided dice and totals the results."};
 	if(classMenu == true) {
-		cout<<"\nStats Description:"<<endl;
+		for(int i=0; i<4; i++)
+		cout<<classStatsDes[i]<<endl;
 	} else if(weaponMenu == true) {
-		cout<<"\nWeapon Stats Description:"<<endl;
+		for(int i=0; i<5; i++)
+			cout<<weaponStatsDes[i]<<endl;
+	} else if(combatMenu == true) {
+		for(int i=0; i<4; i++)
+			cout<<classStatsDes[i]<<endl;
+			cout<<"\n\n";
+		for(int i=0; i<5; i++)
+			cout<<weaponStatsDes[i]<<endl;
 	}
 }
 
@@ -420,23 +512,26 @@ void weaponDisplay(string weapon, const string highlight) {
 	
 	if(playerClass == "Knight"){
 		if(weapon == "Battleaxe")
-			cout<< "\t [1d8 + POW]"<<endl;
+			cout<< "\t [FOR: 1d8]"<<endl;
 		else if(weapon == "Longbow")
-			cout<< "\t [1d5 + POW]"<<endl;
+			cout<< "\t [FOR: 1d5]"<<endl;
 		else
-			cout<< "\t [1d13 + POW]"<<endl;
+			cout<< "\t [FOR: 2d13]"<<endl;
+	} else if(playerClass == "Pyromancer") {
+		if(weapon == "Fire Staff")
+			cout<< "\t [FOR: 2d3]"<<endl;
+		else if(weapon == "Flame Wand")
+			cout<< "\t [FOR: 1d4]"<<endl;
+		else if(weapon == "Pyromancer's Tome")
+			cout<< "\t [FOR: 3d2]"<<endl;
 	}
-//	else if(playerClass == "Pyromancer") {
-//	}	
 }
 
 void classDisplay(string class_, const string highlight) {
 	if(class_ == "Knight")
-   	cout<< highlight << class_ << "\t [HP: 100, STR: 10, MG: 3, AGI: 15]"<<endl;
+   	cout<< highlight << class_ << "\t [VIG: 100, POW: 2]"<<endl;
 	else if (class_ == "Pyromancer") 
-	cout<< highlight << class_ << "\t [HP: 80, STR: 3, MG: 16, AGI: 32]"<<endl;
-	else if (class_ == "Rogue")
-	cout<< highlight << class_ << "\t Haven't decided yet"<<endl;
+	cout<< highlight << class_ << "\t [VIG: 80, MAG: 16]"<<endl;
 }
 
 int main() {
@@ -459,7 +554,7 @@ void classWindow() {
 	mainMenu = false;
 	weaponMenu = false;
 	combatMenu = false;
-	string classOptions[] = { "Knight", "Pyromancer", "Rogue"};
+	string classOptions[] = { "Knight", "Pyromancer"};
 	int size = sizeof(classOptions)/sizeof(classOptions[0]);
 	system("cls");
 	display(classOptions, size);
@@ -482,18 +577,10 @@ void classChoiceDetermine(string selectedOption) {
     if (playerClass == "Knight") {
         playerHp = Knight[0];
         playerPower = Knight[1];
-        playerMagic = Knight[2];
-        playerAgility = Knight[3];
     }
     else if (playerClass == "Pyromancer") {
         playerHp = Pyromancer[0];
         playerPower = Pyromancer[1];
-        playerMagic = Pyromancer[2];
-        playerAgility = Pyromancer[3];
-    }
-    else {
-        cout << "Work in progress for this class." << endl;
-        return;
     }
 	dynamicPlayerHp = playerHp;
     weaponWindow();
@@ -537,12 +624,14 @@ void monsterDetermine() {
 void monsterStatsDetermine() {
 	if(monster == "Goblin"){
 		monsterHp = Goblin[0];
-		monsterPower = Goblin[1];
-		monsterExp = Goblin[2];
+		monsterStr = Goblin[1];
+		monsterPower = Goblin[2];
+		monsterExp = Goblin[3];
 	} else if(monster == "Gargoyle") {
 		monsterHp = Gargoyle[0];
-		monsterPower = Gargoyle[1];
-		monsterExp = Gargoyle[2];	
+		monsterStr = Gargoyle[1];
+		monsterPower = Gargoyle[2];
+		monsterExp = Gargoyle[3];	
 	}
 	dynamicMonsterHp = monsterHp;
 }
