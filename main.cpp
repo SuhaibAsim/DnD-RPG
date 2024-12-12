@@ -130,8 +130,8 @@ void combatWindow() {
 		firstSpawn = true;
 	}
 		
-	playerDetails = "[Class:" + playerClass + "] [VIG:" + to_string(dynamicPlayerHp) + "] [POW:" + to_string(playerPower) + "] [FOR:" + to_string(weaponStr[1]) + "]";
-	monsterDetails = "[Monster:" + monster + "] [VIG:" + to_string(dynamicMonsterHp) + "] [POW:" + to_string(monsterPower) + "] [FOR:" + to_string(monsterStr) + "]";
+	playerDetails = "[Class:" + playerClass + "] [VIG:" + to_string(dynamicPlayerHp) + "] [FOR:" + to_string(weaponStr[0]) + "d" + to_string(weaponStr[1]) + "] [POW:" + to_string(playerPower) + "]";
+	monsterDetails = "[Monster:" + monster + "] [VIG:" + to_string(dynamicMonsterHp) + "] [FOR:1d" + to_string(monsterStr) + "] [POW:" + to_string(monsterPower) + "]";
 	
 	string action[] = {"Attack", "Heal", "Run"};
 	int size = sizeof(action)/sizeof(action[0]);
@@ -186,11 +186,14 @@ void rewardFail() {
 }
 
 void combatChoiceDetermine(string action) {
-
+	rollAttack = 0;
 	bool monsterSpawn = true;
 
 	if(action == "Attack") {
-		rollAttack =  randomNumberGenerator(weaponStr[0] , weaponStr[1]);
+		for(int i = 0; i < weaponStr[0]; i++){
+			rollAttack =  rollAttack + randomNumberGenerator(weaponStr[0] , weaponStr[1]);
+		}
+		
 		dynamicMonsterHp = dynamicMonsterHp - (rollAttack + playerPower);
 		logArray[logIndex] = "> You attack the monster: " + monster + " [DMG: " + to_string(rollAttack) + "+" + to_string(playerPower) + " = " + to_string(rollAttack+playerPower) + "]";
 		logIndex++;
@@ -212,9 +215,10 @@ void combatChoiceDetermine(string action) {
 			logArray[logIndex] = "> You drink the potion to regain your vigour [HP: +30], Remaining Potions: "  + to_string(playerPotion);
 			logIndex++;
 		} else {
-			logArray[logIndex] = "> You have run out of potions";
+			logArray[logIndex] = "> You have run out of healing potions.";
 			logIndex++;
 		}
+		monsterSpawn = false;
 	}
 	else if(action == "Run") {
 		if(randomNumberGenerator(1, 100) < 50) {
@@ -241,6 +245,7 @@ void combatChoiceDetermine(string action) {
 			death();
 	} else {
 		monsterSpawn = true;
+		if(dynamicMonsterHp <= 0)
 		monsterDetermine();
 	}
 	combatWindow();
@@ -368,7 +373,7 @@ void weaponChoiceDetermine(string weapon) {
 			weaponStr[1] = 5;
 		} else if (playerWeapon == "Zweihander") {
 			weaponStr[0] = 2;
-			weaponStr[1] = 26;
+			weaponStr[1] = 13;
 		}	
 	} else if(playerClass == "Pyromancer") {
 		if(playerWeapon == "Fire Staff") {
@@ -497,6 +502,7 @@ void descriptionDisplay() {
 		cout<<"[W]: Navigate upwards."<<endl;
 		cout<<"[S]: Navigate downwards."<<endl;
 		cout<<"[SPACEBAR]: Confirm action."<<endl;
+		cout<<"\n\n\n[A dungeons and dragons role-playing game made by Shahab Burhan, Suhaib Asim and Ayan Qaiser.]";
 	}
 	else if(classMenu == true) {
 		for(int i=0; i<4; i++)
@@ -623,11 +629,11 @@ void monsterDetermine() {
 	switch(monsterNumber) {
 		case 1:
 			monster = "Goblin";
-			cout<<"\nA rustling from the bushes stops you in your tracks. A goblin emerges, its red eyes gleaming as it snarls, 'Fresh meat!'"<<endl;
+			cout<<"\nA rustling from the bushes stops you in your tracks. A goblin emerges, its red eyes gleaming as it snarls, 'Fresh meat!'."<<endl;
 			getch();
 			break;
 		case 2:
-			monster = "ShadowWerewolf";
+			monster = "Gargoyle";
 			cout<<"\nA faint rumble shakes the cathedral. With a thunderous roar, a gargoyle breaks free, stone claws poised to strike."<<endl;
 			getch();
 			break;
