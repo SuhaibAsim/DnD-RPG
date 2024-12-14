@@ -2,6 +2,7 @@
 #include <time.h>
 #include <string>
 #include <conio.h>
+#include <fstream>
 using namespace std;
 
 enum Key { W = 119, S = 115, SPACEBAR = 32 };
@@ -527,7 +528,7 @@ void death() {
 	getch();
 	cout<<""<<endl;
 	cout<<"The serpent coils tighter, the dungeon consuming you whole. Somewhere far above, the faint sliver of light dims, swallowed by the horrors you could not overcome."<<endl;
-	cout<<"The goblins cackle in the distance, the dragon roars triumphantly, and the presence in the shadows stirs, its hunger sated—for now."<<endl;
+	cout<<"The goblins cackle in the distance, the dragon roars triumphantly, and the presence in the shadows stirs, its hunger satedâ€”for now."<<endl;
 	getch();
 	cout<<""<<endl;
 	cout<<"Your journey ends here, but the dungeon remains. Waiting. Watching. Perhaps another will rise where you have fallen."<<endl;
@@ -625,7 +626,7 @@ void combatWindow() {
 void reward() {
 	playerPotion++;
 	cout<<"As the dust settles, your gaze falls upon a small, glimmering vial nestled amidst the debris. The liquid within glows a soft crimson,"<<endl;
-	cout<<"swirling as if alive — a Potion of Healing. Its warmth radiates through the glass, promising to restore strength"<<endl;
+	cout<<"swirling as if alive â€” a Potion of Healing. Its warmth radiates through the glass, promising to restore strength"<<endl;
 	cout<<"to the weary and mend wounds inflicted by the dungeon's perils.";
 	cout<<""<<endl<<endl;
 	getch();
@@ -633,7 +634,7 @@ void reward() {
 	getch();
 	cout<<"\nPotions in Inventory: "<<playerPotion<<endl;
 	getch();
-	cout<<"\nBut before you can even catch your breath, the ground trembles beneath your feet, and from the shadows, a new monster emerges—its eyes locked onto you,"<<endl;
+	cout<<"\nBut before you can even catch your breath, the ground trembles beneath your feet, and from the shadows, a new monster emergesâ€”its eyes locked onto you,"<<endl;
 	cout<<"hunger in its gaze. This grueling gauntlet is far from over."<<endl;
 	getch();
 }
@@ -652,7 +653,7 @@ void battleEnd() {
 		cout<<"The victory is yours, but the dungeon is far from conquered. What awaits you deeper within?";
 	} else if(choiceNum == 4) {
 		cout<<"The monstrous threat has been vanquished, his body littering the ground, marking the end of this skirmish. You stand amidst the carnage,"<<endl;
-		cout<<"your breath heavy and your body sore, but victorious. The dungeon’s dark heart still beats ahead, waiting for you.";
+		cout<<"your breath heavy and your body sore, but victorious. The dungeonâ€™s dark heart still beats ahead, waiting for you.";
 	} else if(choiceNum == 5) {
 		cout<<"As the final creature falls with a thud, the echoes of battle die away. The dungeon, once alive with the sounds of chaos,"<<endl;
 		cout<<"now falls into an eerie quiet. The threat has passed for now but the deeper dangers of the dungeon loom ahead, waiting for the next challenge.";
@@ -669,9 +670,48 @@ void rewardFail() {
 }
 
 void transitionToContinue() {
-	system("cls");
-	cout<<"This feature is not yet implemented.";
+	// Function to load game progress and resume
+    system("cls");
+    string filename = "CS101.txt";
+
+    // Variables to store saved progress
+    string savedClass;
+    int savedHp, savedDynamicHp, savedPower, savedPotion, savedExp, savedLevel;
+    string savedWeapon;
+    int savedWeaponStr[2];
+
+    ifstream inFile(filename);
+
+    if (inFile.is_open()) {
+        // Read saved progress
+        inFile >> savedClass;
+        inFile >> savedHp >> savedDynamicHp >> savedPower;
+        inFile >> savedPotion >> savedExp >> savedLevel;
+        inFile >> savedWeapon >> savedWeaponStr[0] >> savedWeaponStr[1];
+        inFile.close();
+
+        // Load saved data into game variables
+        playerClass = savedClass;
+        playerHp = savedHp;
+        dynamicPlayerHp = savedDynamicHp;
+        playerPower = savedPower;
+        playerPotion = savedPotion;
+        playerExp = savedExp;
+        playerLevel = savedLevel;
+        playerWeapon = savedWeapon;
+        weaponStr[0] = savedWeaponStr[0];
+        weaponStr[1] = savedWeaponStr[1];
+
+        cout << "Game loaded successfully!\n";
+        cout << "Welcome back, " << playerClass << ".\n";
+        combatWindow(); // Resume game in combat mode
+    } else {
+        cout << "No save file found. Start a new game instead.\n";
+        getch();
+        menuWindow();
+    }
 }
+
 
 void transitionToOptions() {
     system("cls");
@@ -682,30 +722,3 @@ void transitionToExit() {
     system("cls");
     cout << "Goodbye.";
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
